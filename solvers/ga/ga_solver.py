@@ -3,18 +3,19 @@ import random
 
 
 class GeneticAlgorithmSolver():
-    def __init__(self, t_max=600, pc=0.85, pm=0.15, size=400):
+    def __init__(self, pop_size, chrom_size, pc=0.85, pm=0.15, t_max=600):
         self.t_max = t_max
         self.pc = pc
         self.pm = pm
-        self.size = size
+        self.pop_size = pop_size
+        self.chrom_size = chrom_size
 
     def get_parameters(self):
         params = {
             "t_max": self.t_max,
             "pc": self.pc,
             "pm": self.pm,
-            "size": self.size
+            "pop_size": self.pop_size
         }
         return params
 
@@ -22,8 +23,8 @@ class GeneticAlgorithmSolver():
         """
         Return random decision vectors
         """
-        p0 = np.array([[random.getrandbits(1) for _ in range(200)]
-                       for _ in range(self.size)])
+        p0 = np.array([[random.getrandbits(1) for _ in range(self.chrom_size)]
+                       for _ in range(self.pop_size)])
         return p0
 
     def find_best(self, P, scores):
@@ -43,8 +44,8 @@ class GeneticAlgorithmSolver():
         scores = scores - np.amin(scores)
         probability = scores/np.amax(scores)
         probability = probability/np.sum(probability)
-        ids = np.array([i for i in range(self.size)])
-        selected_ids = np.random.choice(ids, self.size, p=probability)
+        ids = np.array([i for i in range(self.pop_size)])
+        selected_ids = np.random.choice(ids, self.pop_size, p=probability)
         P_selected = np.array([P[ids[i]] for i in selected_ids])
         return P_selected
 
@@ -53,7 +54,7 @@ class GeneticAlgorithmSolver():
         Function, that performs crossover for given population
         and then mutates each chromosome, both with given probability
         """
-        num_of_pairs = int(self.size/2)
+        num_of_pairs = int(self.pop_size/2)
         pairs = []
         ids = [i for i in range(num_of_pairs)]
         while ids:
@@ -67,14 +68,14 @@ class GeneticAlgorithmSolver():
             if random.random() < self.pc:
                 cross_bit = np.random.randint(1, num_of_pairs)
                 tmp = P_crossed[pair[0]]
-                for bit in range(cross_bit, 200):
+                for bit in range(cross_bit, self.chrom_size):
                     P_crossed[pair[0], bit] = P_crossed[pair[1], bit]
                 for bit in range(0, cross_bit):
                     P_crossed[pair[1], bit] = tmp[bit]
 
         P_mutated = P_crossed
-        for i in range(self.size):
-            for j in range(200):
+        for i in range(self.pop_size):
+            for j in range(self.chrom_size):
                 if random.random() < self.pm:
                     P_mutated[i, j] = 1 - P_mutated[i, j]
 
