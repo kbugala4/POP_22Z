@@ -1,6 +1,6 @@
 from copy import copy
 import numpy as np
-from sudoku_manager import SudokuManager
+import sys
 
 
 class Sudoku(object):
@@ -9,6 +9,7 @@ class Sudoku(object):
 
     def __init__(self, board):
         self.board = board
+        self.info = self.get_free_in_rows()
 
     def __get_free_tiles(self):
         free_tiles_arrs = np.where(self.board == 0)
@@ -57,29 +58,22 @@ class Sudoku(object):
     def get_left_numbers(self):
         numbers_left = []
         for i in self.NUMBERS:
-            numbers_left.append(i for _ in range(9 - (self.board == i).sum()))
+            for _ in range(9 - (self.board == i).sum()):
+                numbers_left.append(i)
+        return numbers_left
+
+    def __get_left_in_row(self, row_id):
+        numbers_left = []
+        for i in self.NUMBERS:
+            if i not in self.board[row_id]:
+                numbers_left.append(i)
         return numbers_left
 
     def get_free_in_rows(self):
         rows_free = {}
         for i in range(self.board.shape[0]):
-            rows_free[i] = np.where(self.board[i] == 0)[0].tolist()
+            rows_free[i] = (
+                np.where(self.board[i] == 0)[0].tolist(),
+                self.__get_left_in_row(i),
+            )
         return rows_free
-
-
-if __name__ == "__main__":
-
-    sm = SudokuManager()
-
-    boards = sm.load_n_level_boards("easy", 4)
-
-    sud = Sudoku(boards[3])
-
-    print(sud.board)
-
-    f_state = sud.get_full_state()
-
-    print(f_state)
-
-    print("Free in rows:")
-    print(sud.get_free_in_rows())

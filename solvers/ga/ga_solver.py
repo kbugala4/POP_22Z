@@ -1,10 +1,11 @@
 import numpy as np
+from copy import copy, deepcopy
 import random
 import copy
 import sys
 
-sys.path.append("problem")
-from sudoku import Sudoku
+sys.path.append("src/")
+from problem.sudoku import Sudoku
 
 
 class GeneticAlgorithmSolver:
@@ -17,6 +18,32 @@ class GeneticAlgorithmSolver:
         self.pop_size = pop_size
         self.chrom_size = chrom_size
         self.sudoku = sudoku
+
+    def generate_chrom(self):
+        chrom = copy(self.sudoku.board)
+        for row_id in range(chrom.shape[0]):
+            left_in_row = copy(self.sudoku.info[row_id][1])
+            random.shuffle(left_in_row)
+            for i in range(len(chrom[row_id])):
+                if chrom[row_id, i] == 0:
+                    chrom[row_id, i] = left_in_row.pop()
+        return chrom
+
+    def generate_population(self):
+        population = []
+        for _ in range(self.pop_size):
+            population.append(self.generate_chrom())
+        return population
+
+    def evaluate_chrom(self, chrom):
+        unique_count = 0
+        for col in chrom.T:
+            unique_count += len(np.unique(col))
+        for i in range(3):
+            for j in range(3):
+                block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
+                unique_count += len(np.unique(block))
+        return unique_count
 
     def get_parameters(self):
         params = {
@@ -61,7 +88,7 @@ class GeneticAlgorithmSolver:
         P_selected = np.array([P[ids[i]] for i in selected_ids])
         return P_selected
 
-    def mutate(self, chrom): 
+    def mutate(self, chrom):
         row_iterator = 0
         for row in chrom:
             if np.random.uniform(0, 1) < self.pm:  # if row is to mutate
@@ -84,7 +111,6 @@ class GeneticAlgorithmSolver:
             chrom_a[slice_point:] = chrom_b[slice_point:]
             chrom_b[slice_point:] = temp_a
         return chrom_a, chrom_b
-
 
     def crossover_mutation(self, P):
         """
