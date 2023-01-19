@@ -1,9 +1,10 @@
 import numpy as np
 import random
+import copy
 import sys
 
-sys.path.append("../problem")
-from problem.sudoku import Sudoku
+sys.path.append("problem")
+from sudoku import Sudoku
 
 
 class GeneticAlgorithmSolver:
@@ -60,6 +61,31 @@ class GeneticAlgorithmSolver:
         P_selected = np.array([P[ids[i]] for i in selected_ids])
         return P_selected
 
+    def mutate(self, chrom): 
+        row_iterator = 0
+        for row in chrom:
+            if np.random.uniform(0, 1) < self.pm:  # if row is to mutate
+                available_tiles_row = self.available_tiles[row_iterator]
+                if len(available_tiles_row) >= 2:
+                    tile_a_id = random.choice(available_tiles_row)
+                    tile_b_id = random.choice(available_tiles_row)
+                    while tile_a_id == tile_b_id:
+                        tile_b_id = random.choice(available_tiles_row)
+                    temp_number = row[tile_a_id]
+                    row[tile_a_id] = row[tile_b_id]
+                    row[tile_b_id] = temp_number
+            row_iterator += 1
+        return chrom
+
+    def cross(self, chrom_a, chrom_b):
+        if np.random.uniform(0, 1) < self.pc:  # if pair is to cross
+            slice_point = np.random.randint(1, chrom_a.shape[0])
+            temp_a = copy(chrom_a[slice_point:])
+            chrom_a[slice_point:] = chrom_b[slice_point:]
+            chrom_b[slice_point:] = temp_a
+        return chrom_a, chrom_b
+
+
     def crossover_mutation(self, P):
         """
         Function, that performs crossover for given population
@@ -76,19 +102,11 @@ class GeneticAlgorithmSolver:
 
         P_crossed = P
         for pair in pairs:
-            if random.random() < self.pc:
-                cross_bit = np.random.randint(1, num_of_pairs)
-                tmp = P_crossed[pair[0]]
-                for bit in range(cross_bit, self.chrom_size):
-                    P_crossed[pair[0], bit] = P_crossed[pair[1], bit]
-                for bit in range(0, cross_bit):
-                    P_crossed[pair[1], bit] = tmp[bit]
+            P_crossed[pair(0)], P_crossed[pair(1)] = self.cross(P(pair(0)), P(pair(1)))
 
         P_mutated = P_crossed
-        for i in range(self.pop_size):
-            for j in range(self.chrom_size):
-                if random.random() < self.pm:
-                    P_mutated[i, j] = 1 - P_mutated[i, j]
+        for chrom_id in self.pop_size:
+            P_mutated[chrom_id] = self.mutate(P_mutated[chrom_id])
 
         return P_mutated
 
