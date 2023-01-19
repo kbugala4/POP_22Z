@@ -60,6 +60,12 @@ class Sudoku(object):
             numbers_left.append(i for _ in range(9 - (self.board == i).sum()))
         return numbers_left
 
+    def get_free_in_rows(self):
+        rows_free = {}
+        for i in range(self.board.shape[0]):
+            rows_free[i] = np.where(self.board[i] == 0)[0].tolist()
+        return rows_free
+
 
 if __name__ == "__main__":
 
@@ -74,3 +80,6 @@ if __name__ == "__main__":
     f_state = sud.get_full_state()
 
     print(f_state)
+
+    print("Free in rows:")
+    print(sud.get_free_in_rows())
