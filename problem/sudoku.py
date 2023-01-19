@@ -57,13 +57,27 @@ class Sudoku(object):
     def get_left_numbers(self):
         numbers_left = []
         for i in self.NUMBERS:
-            numbers_left.append(i for _ in range(9 - (self.board == i).sum()))
+            for _ in range(9 - (self.board == i).sum()):
+                numbers_left.append(i)
+        return numbers_left
+
+    def __get_left_in_row(self, row_id):
+        numbers_left = []
+        for i in self.NUMBERS:
+            if i not in self.board[row_id]:
+                numbers_left.append(i)
         return numbers_left
 
     def get_free_in_rows(self):
         rows_free = {}
         for i in range(self.board.shape[0]):
-            rows_free[i] = np.where(self.board[i] == 0)[0].tolist()
+            tab = self.__get_left_in_row(1)
+            print(tab)
+            print(type(tab))
+            rows_free[i] = (
+                np.where(self.board[i] == 0)[0].tolist(),
+                self.__get_left_in_row(i),
+            )
         return rows_free
 
 
@@ -83,3 +97,6 @@ if __name__ == "__main__":
 
     print("Free in rows:")
     print(sud.get_free_in_rows())
+
+    print("Numbers left:")
+    print(sud.get_left_numbers())
