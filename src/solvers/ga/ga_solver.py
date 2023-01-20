@@ -1,7 +1,6 @@
 import numpy as np
 from copy import copy, deepcopy
 import random
-import copy
 import sys
 
 sys.path.append("src/")
@@ -10,7 +9,14 @@ from problem.sudoku import Sudoku
 
 class GeneticAlgorithmSolver:
     def __init__(
-        self, sudoku: Sudoku, pop_size, chrom_size, pc=0.85, pm=0.15, t_max=600
+        self,
+        sudoku: Sudoku,
+        pop_size,
+        chrom_size,
+        pc=0.85,
+        pm=0.15,
+        t_max=600,
+        reset_condition_val=75,
     ):
         self.t_max = t_max
         self.pc = pc
@@ -18,11 +24,12 @@ class GeneticAlgorithmSolver:
         self.pop_size = pop_size
         self.chrom_size = chrom_size
         self.sudoku = sudoku
+        self.reset_condition_val = reset_condition_val
 
     def generate_chrom(self):
         chrom = copy(self.sudoku.board)
         for row_id in range(chrom.shape[0]):
-            left_in_row = copy(self.sudoku.info[row_id][1])
+            left_in_row = copy(self.sudoku.nums_left[row_id])
             random.shuffle(left_in_row)
             for i in range(len(chrom[row_id])):
                 if chrom[row_id, i] == 0:
@@ -38,7 +45,7 @@ class GeneticAlgorithmSolver:
     def evaluate_chrom(self, chrom):
         unique_count = 0
         for col in chrom.T:
-            unique_count += len(np.unique(col))
+            unique_count += 2 * len(np.unique(col))
         for i in range(3):
             for j in range(3):
                 block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
@@ -92,7 +99,7 @@ class GeneticAlgorithmSolver:
         row_iterator = 0
         for row in chrom:
             if np.random.uniform(0, 1) < self.pm:  # if row is to mutate
-                available_tiles_row = self.available_tiles[row_iterator]
+                available_tiles_row = self.sudoku.free_tiles[row_iterator]
                 if len(available_tiles_row) >= 2:
                     tile_a_id = random.choice(available_tiles_row)
                     tile_b_id = random.choice(available_tiles_row)
@@ -119,7 +126,7 @@ class GeneticAlgorithmSolver:
         """
         num_of_pairs = int(self.pop_size / 2)
         pairs = []
-        ids = [i for i in range(num_of_pairs)]
+        ids = [i for i in range(self.pop_size)]
         while ids:
             rand1 = ids.pop(np.random.randint(0, len(ids)))
             rand2 = ids.pop(np.random.randint(0, len(ids)))
@@ -128,15 +135,15 @@ class GeneticAlgorithmSolver:
 
         P_crossed = P
         for pair in pairs:
-            P_crossed[pair(0)], P_crossed[pair(1)] = self.cross(P(pair(0)), P(pair(1)))
+            P_crossed[pair[0]], P_crossed[pair[1]] = self.cross(P[pair[0]], P[pair[1]])
 
         P_mutated = P_crossed
-        for chrom_id in self.pop_size:
+        for chrom_id in range(self.pop_size):
             P_mutated[chrom_id] = self.mutate(P_mutated[chrom_id])
 
         return P_mutated
 
-    def solve(self, problem, pop0, *args, **kwargs):
+    def solve(self, *args, **kwargs):
         """
         Solves a given problem for single population0,
         returnes globally best vector of decision, score
@@ -144,15 +151,18 @@ class GeneticAlgorithmSolver:
         """
 
         def get_scores(P):
-            scores = np.array([problem(x) for x in P])
+            scores = np.array([self.evaluate_chrom(x) for x in P])
             return scores
 
         t = 0
+        reset_condition = 0
+        pop0 = self.generate_population()
         scores = get_scores(pop0)
         x_best_global, score_best_global = self.find_best(pop0, scores)
 
         P_t = pop0
         P_t_scores = scores
+        global_best = []
 
         best_score_per_iter = []
         while t < self.t_max:
@@ -168,7 +178,16 @@ class GeneticAlgorithmSolver:
                 x_best_global = x_best_tmp
                 score_best_global = score_best_tmp
                 print(f"Improvement! Score: {score_best_global}")
+                reset_condition = 0
 
             best_score_per_iter.append(score_best_tmp)
             t += 1
+            reset_condition += 1
+            if reset_condition == self.reset_condition_val:
+                print("No improvement. Generating new population.")
+                P_t = self.generate_population()
+                P_t_scores = get_scores(P_t)
+                global_best.append((x_best_global, score_best_global))
+                score_best_global = 0
+
         return x_best_global, score_best_global, np.array(best_score_per_iter)

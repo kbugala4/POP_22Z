@@ -9,7 +9,7 @@ class Sudoku(object):
 
     def __init__(self, board):
         self.board = board
-        self.info = self.get_free_in_rows()
+        self.free_tiles, self.nums_left = self.get_free_in_rows()
 
     def __get_free_tiles(self):
         free_tiles_arrs = np.where(self.board == 0)
@@ -52,7 +52,6 @@ class Sudoku(object):
             numbers = self.__check_column(numbers, ft)
             numbers = self.__check_block(numbers, ft)
             state[ft] = numbers
-        print(self.board)
         return state
 
     def get_left_numbers(self):
@@ -70,10 +69,9 @@ class Sudoku(object):
         return numbers_left
 
     def get_free_in_rows(self):
-        rows_free = {}
+        free_ids = {}
+        nums_left = {}
         for i in range(self.board.shape[0]):
-            rows_free[i] = (
-                np.where(self.board[i] == 0)[0].tolist(),
-                self.__get_left_in_row(i),
-            )
-        return rows_free
+            free_ids[i] = np.where(self.board[i] == 0)[0].tolist()
+            nums_left[i] = self.__get_left_in_row(i)
+        return free_ids, nums_left
