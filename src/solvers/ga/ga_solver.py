@@ -1,10 +1,10 @@
 import numpy as np
-from copy import copy, deepcopy
+from copy import copy
 import random
 import sys
 
 sys.path.append("src/")
-from problem.sudoku import Sudoku
+from problem.sudoku_manager import Sudoku
 
 
 class GeneticAlgorithmSolver:
