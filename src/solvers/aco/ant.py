@@ -24,11 +24,11 @@ class Ant:
 
     def move_next(self):
         next_col = self.tile[1] + 1
-        if next_col == 9:
+        if next_col <= 8:
+            self.tile[1] += 1
+        else:
             self.tile[0] += 1
             self.tile[1] = 0
-        else:
-            self.tile[1] += 1
             
 
     def choose_value(self):
