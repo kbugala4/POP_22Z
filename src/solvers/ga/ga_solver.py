@@ -44,13 +44,20 @@ class GeneticAlgorithmSolver:
 
     def evaluate_chrom(self, chrom):
         unique_count = 0
+        max_score = 0
+        
+        col_factor = 2.
+        block_factor = 1.
         for col in chrom.T:
-            unique_count += 2 * len(np.unique(col))
+            unique_count += col_factor * len(np.unique(col))
+            max_score += col_factor * 9
         for i in range(3):
             for j in range(3):
-                block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
-                unique_count += len(np.unique(block))
-        return unique_count
+                block = chrom[i*3 : i*3 + 3, j*3 : j*3 + 3]
+                unique_count += block_factor * len(np.unique(block))
+                max_score += block_factor * 9
+        score = unique_count / max_score
+        return score
 
     def get_parameters(self):
         params = {
