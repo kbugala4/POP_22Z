@@ -1,5 +1,5 @@
 import numpy as np
-from copy import copy
+from copy import deepcopy
 import random
 import sys
 
@@ -27,9 +27,7 @@ class AntColonyOptSolver:
         cells_count = SIZE**2
         init_val = 1 / cells_count
         
-        self.pheromone_matrix = [[[init_val for _ in range(SIZE)]
-                        for _ in range(SIZE)]
-                        for _ in range(SIZE)]
+        self.pheromone_matrix = np.ones([SIZE, SIZE, SIZE]) * init_val
 
         ants = [Ant() for _ in range(cells_count)]
         epoch = 1
@@ -37,13 +35,14 @@ class AntColonyOptSolver:
             for ant in range(cells_count):
                 column =  ant % SIZE
                 row = int(ant / SIZE)
-                pose = (row, column)
-                ants[ant] = Ant()
+                tile = (row, column)
+                ants[ant] = Ant(deepcopy(sudoku), self.pheromone_matrix, init_val, self.local_pher_factor, self.greed_factor, tile)
 
             for step in range(cells_count):
                 for ant in ants:
-                    if ant.cell_to_set():
-                        ant.decide_and_propagate()
+                    if ant.tile_is_valid():
+                        ant.choose_value()
+                        ant.propagate_constraints()
                     ant.move_next()
             
             # Finding best ant
