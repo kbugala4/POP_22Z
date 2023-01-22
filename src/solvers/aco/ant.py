@@ -25,11 +25,23 @@ class Ant:
     def move_next(self):
         pass
 
-    def set_value(self):
+    def choose_value(self):
         pass
 
-    def propagate_constraints(self):
-        pass
+    def propagate_constraints(self, tile_num):
+        self.sudoku.update_state(self.tile, tile_num)
 
-    def update_local(self):
-        pass
+    def update_local(self, tile_num):
+        self.pheromone_mat[tile_num][self.tile] = (
+            1 - self.local_pher_update
+        ) * self.pheromone_mat[
+            tile_num
+        ] + self.local_pher_update * self.initial_pher_val
+
+    def tile_is_valid(self):
+        if not self.sudoku.state[self.tile]:
+            return False
+        elif len(self.sudoku.state[self.tile]) > 1:
+            return True
+        else:
+            return False

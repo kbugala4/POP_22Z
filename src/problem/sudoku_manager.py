@@ -149,3 +149,8 @@ if __name__ == "__main__":
     print(sud1.state)
 
     print(sud1.board)
+
+    arr = np.zeros((3, 4, 5))
+    print(arr)
+    arr[0, 1, 2] = 45
+    print(arr)
