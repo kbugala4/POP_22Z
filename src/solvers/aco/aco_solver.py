@@ -73,6 +73,7 @@ class AntColonyOptSolver:
 
             # Evapropation
             best_pheromone_to_add *= (1 - self.evaporation)
+            epoch += 1
 
     def global_pher_mat_update(self, solution, best_pheromone):
         for row in range(SIZE):
