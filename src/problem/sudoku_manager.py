@@ -36,9 +36,9 @@ class Sudoku(object):
             return
 
         self.free_tiles, self.nums_left = self.get_free_in_rows()
-        self.state = self.get_full_state()
         self.fixed_count = len(self.__get_occupied_tiles())
         self.failed_count = 0
+        self.state = self.get_full_state()
 
     def __get_free_tiles(self):
         free_tiles_arrs = np.where(self.board == 0)
@@ -84,12 +84,19 @@ class Sudoku(object):
             numbers = self.__check_column(numbers, tile)
             numbers = self.__check_block(numbers, tile)
             state[tile] = numbers
+            if len(numbers) == 1:
+                self.board[tile] = list(numbers)[0]
+                self.fixed_count += 1
+            elif len(numbers) == 0:
+                self.failed_count += 1
         return state
 
     def update_state(self, upd_tile, tile_num):
         if len(self.state[upd_tile]) > 0:
             new_fixed_tiles = []
             self.board[upd_tile] = tile_num
+            self.state[upd_tile] = {tile_num}
+            self.fixed_count += 1
             for tile in self.state.keys():
                 if (
                     tile != upd_tile
@@ -101,12 +108,17 @@ class Sudoku(object):
                     )
                     and tile_num in self.state[tile]
                 ):
+                    # print(f"Before remove: {self.state[tile]}")
                     self.state[tile].remove(tile_num)
+                    # print(f"After remove: {self.state[tile]}")
+                    # print(f"Removing {tile_num} from {tile}")
                     if not self.state[tile]:
+                        # print(f"Tile {tile} set as failed")
                         self.failed_count += 1
                         self.fixed_count -= 1
                     elif len(self.state[tile]) == 1:
-                        self.fixed_count += 1
+                        # print(f"Tile {tile} set as fixed")
+                        # self.fixed_count += 1
                         new_fixed_tiles.append((tile, list(self.state[tile])[0]))
             for new_fixed in new_fixed_tiles:
                 self.update_state(new_fixed[0], new_fixed[1])
@@ -153,4 +165,5 @@ if __name__ == "__main__":
     arr = np.zeros((3, 4, 5))
     print(arr)
     arr[0, 1, 2] = 45
+    arr[0][(1, 2)] = 45
     print(arr)

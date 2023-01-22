@@ -1,5 +1,5 @@
 import numpy as np
-from copy import deepcopy
+from copy import deepcopy, copy
 import random
 import sys
 
@@ -8,61 +8,87 @@ from solvers.aco.ant import Ant
 from problem.sudoku_manager import Sudoku
 from constants import SIZE
 
+
 class AntColonyOptSolver:
     def __init__(
         self,
         greed_factor=0.9,
-        local_pher_factor=0.1,
-        global_pher_factor=0.9,
-        evapropation=0.005
+        local_pher_factor=0.15,
+        global_pher_factor=0.8,
+        evaporation=0.005,
     ):
         # self.sudoku = sudoku
         self.local_pher_factor = local_pher_factor
         self.global_pher_factor = global_pher_factor
         self.greed_factor = greed_factor
-        self.evapropation = evapropation
+        self.evaporation = evaporation
 
     def solve(self, sudoku: Sudoku):
         is_solved = False
         cells_count = SIZE**2
         init_val = 1 / cells_count
-        
         self.pheromone_matrix = np.ones([SIZE, SIZE, SIZE]) * init_val
 
-        ants = [Ant() for _ in range(cells_count)]
         epoch = 1
+        solution = None
         while not is_solved:
+            ants = []
+            best_pheromone_to_add = 0
             for ant in range(cells_count):
-                column =  ant % SIZE
+                column = ant % SIZE
                 row = int(ant / SIZE)
                 tile = (row, column)
-                ants[ant] = Ant(deepcopy(sudoku), self.pheromone_matrix, init_val, self.local_pher_factor, self.greed_factor, tile)
+                ants.append(
+                    Ant(
+                        deepcopy(sudoku),
+                        self.pheromone_matrix,
+                        init_val,
+                        self.local_pher_factor,
+                        self.greed_factor,
+                        tile,
+                    )
+                )
 
-            for step in range(cells_count):
-                for ant in ants:
+            for _ in range(cells_count):
+                for id, ant in enumerate(ants):
                     if ant.tile_is_valid():
-                        ant.choose_value()
-                        ant.propagate_constraints()
+                        # print(ant.tile)
+                        # if ant.tile[0] == 7 and ant.tile[1] == 3:
+                        #     flag = True
+                        # else:
+                        #     flag = False
+                        number = ant.choose_value()
+                        # if flag:
+                        # print(number)
+                        ant.propagate_constraints(number)
+                        # flag = False
+                    # else:
+                    # print("dupqa")
+                    # print(ant.tile)
                     ant.move_next()
-            
+
             # Finding best ant
-            most_fixed = 0
+            best_ant_fixed_count = 0
             for ant in ants:
                 fixed_count = ant.sudoku.fixed_count
                 failed_count = ant.sudoku.failed_count
 
                 # Check if is solved
-                if failed_count == 0:
+                if fixed_count == cells_count:
                     solution = ant.sudoku.board
                     is_solved = True
+                    print(
+                        f"EPOCH {epoch}: most fixed = {best_ant.sudoku.fixed_count}, failed count: {best_ant.sudoku.failed_count}, sol:\n {solution}"
+                    )
+                    return solution
 
                 # Check if best ant for this epoch
-                if fixed_count > most_fixed:
+                if fixed_count > best_ant_fixed_count:
                     best_ant = ant
                     best_ant_fixed_count = fixed_count
 
             pheromone_to_add = cells_count / (cells_count - best_ant_fixed_count)
-
+            # print(f"pheromone_to_add: {pheromone_to_add}")
             if pheromone_to_add > best_pheromone_to_add:
                 solution = best_ant.sudoku.board
                 best_pheromone_to_add = pheromone_to_add
@@ -71,7 +97,11 @@ class AntColonyOptSolver:
             self.global_pher_mat_update(solution, best_pheromone_to_add)
 
             # Evapropation
-            best_pheromone_to_add *= (1 - self.evaporation)
+            best_pheromone_to_add *= 1 - self.evaporation
+            print(
+                f"EPOCH {epoch}: most fixed = {best_ant.sudoku.fixed_count}, failed count: {best_ant.sudoku.failed_count}, sol:\n {solution}"
+            )
+            print(best_ant.sudoku.state)
             epoch += 1
 
     def global_pher_mat_update(self, solution, best_pheromone):
@@ -79,5 +109,9 @@ class AntColonyOptSolver:
             for col in range(SIZE):
                 set_value = solution[row, col]
                 if set_value > 0:
-                    self.pheromone_matrix[row, col][set_value - 1] *= (1 - self.self.global_pher_factor) 
-                    self.pheromone_matrix[row, col][set_value - 1] += self.self.global_pher_factor * best_pheromone
+                    self.pheromone_matrix[row, col][set_value - 1] *= (
+                        1 - self.global_pher_factor
+                    )
+                    self.pheromone_matrix[row, col][set_value - 1] += (
+                        self.global_pher_factor * best_pheromone
+                    )

@@ -4,6 +4,7 @@ import numpy as np
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
+from constants import SIZE
 
 
 class Ant:
@@ -24,18 +25,22 @@ class Ant:
         self.tile = tile
 
     def move_next(self):
-        next_col = self.tile[1] + 1
-        if next_col <= 8:
-            self.tile[1] += 1
-        else:
-            self.tile[0] += 1
-            self.tile[1] = 0
+        new_row = self.tile[0]
+        new_col = self.tile[1] + 1
+
+        if new_col >= SIZE:
+            new_col = 0
+            new_row += 1
+        if new_row >= SIZE:
+            new_row = 0
+
+        self.tile = (new_row, new_col)
 
     def choose_value(self):
-        pher = self.pheromone_mat[self.tile[0]][self.tile[1]]
+        pher = self.pheromone_mat[:][self.tile]
 
         best_pheromone = 0
-        available_values = self.sudoku.state[self.tile]
+        available_values = np.array(list(self.sudoku.state[self.tile]))
 
         # Greedy selection
         if random.random() > self.greed:
@@ -47,24 +52,32 @@ class Ant:
 
         # Roulette wheel selection
         else:
-            selected_value = random.choices(available_values, cum_weights=pher)
+            weights = pher[available_values - 1]
+
+            selected_value = random.choices(available_values, weights=tuple(weights))[0]
 
         return selected_value
 
     def propagate_constraints(self, tile_num):
         self.sudoku.update_state(self.tile, tile_num)
+        self.update_local(tile_num)
 
     def update_local(self, tile_num):
+        tile_num -= 1
         self.pheromone_mat[tile_num][self.tile] = (
             1 - self.local_pher_update
-        ) * self.pheromone_mat[
-            tile_num
+        ) * self.pheromone_mat[tile_num][
+            self.tile
         ] + self.local_pher_update * self.initial_pher_val
 
     def tile_is_valid(self):
-        if not self.sudoku.state[self.tile]:
+        # print(f"self tile: {self.tile}")
+        if self.tile not in self.sudoku.state.keys():
+            # print("not valid (a)")
             return False
         elif len(self.sudoku.state[self.tile]) > 1:
+            # print("valid")
             return True
         else:
+            # print("not valid (b)")
             return False
