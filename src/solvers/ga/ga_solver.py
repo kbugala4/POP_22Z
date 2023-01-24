@@ -66,15 +66,15 @@ class GeneticAlgorithmSolver:
 
         for row in chrom:
             unique_count_row = len(np.unique(row))
-
-            reward = (unique_count_row / len(row)) ** (1 / 2)
+            unique_count += unique_count_row
+            reward = (unique_count_row / len(row)) 
             chrom_reward += row_factor * reward
             max_reward += row_factor
 
         for col in chrom.T:
             unique_count_col = len(np.unique(col))
-
-            reward = (unique_count_col / len(col)) ** (1 / 2)
+            unique_count += unique_count_col
+            reward = (unique_count_col / len(col)) 
             chrom_reward += col_factor * reward
             max_reward += col_factor
 
@@ -83,14 +83,14 @@ class GeneticAlgorithmSolver:
                 block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
 
                 unique_count_block = len(np.unique(block))
-
-                reward = (unique_count_block / 9) ** (1 / 2)
+                unique_count += unique_count_block
+                reward = (unique_count_block / 9) 
                 chrom_reward += block_factor * reward
                 max_reward += block_factor
 
         score_rate = chrom_reward / max_reward
-
-        return score_rate
+        # print(unique_count)
+        return  unique_count
 
     def get_parameters(self):
         params = {
@@ -220,14 +220,14 @@ class GeneticAlgorithmSolver:
             if best_score_local > best_score_global:
                 best_chrom_global = best_chrom_local
                 best_score_global = best_score_local
-                if best_score_global == 1.0:
+                if best_score_global == 243:
                     print(f"Problem solved. Solution:\n{best_chrom_global}")
                     break
-                print(f"Improvement! Score: {round(100*best_score_global, 2)}%")
+                print(f"Improvement! Score: {best_score_global}/243")
                 reset_condition = 0
 
             print(
-                f"Epoch: {epoch} best_global: {round(100*best_score_global, 2)}%, best_local: {round(100*best_score_local, 2)}%"
+                f"Epoch: {epoch} best_global: {best_score_global}/243, best_local: {best_score_local}/243"
             )
 
             best_score_per_epoch.append(best_score_local)
@@ -249,50 +249,3 @@ class GeneticAlgorithmSolver:
             np.array(best_score_per_epoch),
             reset_history,
         )
-
-    def evaluate_test(self, chrom):
-        """
-        A method to evaluate given chromosome.
-        """
-        unique_count = 0
-        chrom_reward = 0
-        max_reward = 0
-
-        row_factor = 1
-        col_factor = 1
-        block_factor = 1
-
-        for row in chrom:
-            unique_count_row = len(np.unique(row))
-            unique_count += unique_count_row
-
-            reward = (unique_count_row / len(row)) ** (1 / 2)
-            chrom_reward += row_factor * reward
-            max_reward += row_factor
-            print(f"row: {unique_count_row}")
-
-        for col in chrom.T:
-            unique_count_col = len(np.unique(col))
-            unique_count += unique_count_col
-
-            reward = (unique_count_col / len(col)) ** (1 / 2)
-            chrom_reward += col_factor * reward
-            max_reward += col_factor
-            print(f"col: {unique_count_col}")
-
-        for i in range(3):
-            for j in range(3):
-                block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
-
-                unique_count_block = len(np.unique(block))
-                unique_count += unique_count_block
-
-                reward = (unique_count_block / 9) ** (1 / 2)
-                chrom_reward += block_factor * reward
-                max_reward += block_factor
-                print(f"block: {unique_count_block}")
-
-        unique_rate = unique_count / (max_reward * 9)
-        score_rate = unique_count / max_reward
-
-        return score_rate, unique_rate
