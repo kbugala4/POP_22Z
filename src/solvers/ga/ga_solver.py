@@ -142,11 +142,11 @@ class GeneticAlgorithmSolver:
         return chrom
 
     def cross(self, chrom_a, chrom_b):
-        if np.random.uniform(0, 1) < self.pc:  # if pair is to cross
-            slice_p_1 = np.random.randint(0, chrom_a.shape[0])
-            slice_p_2 = np.random.randint(0, chrom_a.shape[0])
+        if rand_object.uniform(0, 1) < self.pc:  # if pair is to cross
+            slice_p_1 = rand_np_object.randint(0, chrom_a.shape[0])
+            slice_p_2 = rand_np_object.randint(0, chrom_a.shape[0])
             while slice_p_1 == slice_p_2:
-                slice_p_2 = np.random.randint(1, chrom_a.shape[0])
+                slice_p_2 = rand_np_object.randint(1, chrom_a.shape[0])
             if slice_p_2 < slice_p_1:
                 slice_p_temp = slice_p_1
                 slice_p_1 = slice_p_2
@@ -165,8 +165,8 @@ class GeneticAlgorithmSolver:
         pairs = []
         ids = [i for i in range(self.pop_size)]
         while ids:
-            rand1 = ids.pop(rand_object.randint(0, len(ids) - 1))
-            rand2 = ids.pop(rand_object.randint(0, len(ids) - 1))
+            rand1 = ids.pop(rand_np_object.randint(0, len(ids)))
+            rand2 = ids.pop(rand_np_object.randint(0, len(ids)))
             pair = rand1, rand2
             pairs.append(pair)
 
