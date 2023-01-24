@@ -17,7 +17,6 @@ class AntColonyOptSolver:
         global_pher_factor=0.8,
         evaporation=0.005,
     ):
-        # self.sudoku = sudoku
         self.local_pher_factor = local_pher_factor
         self.global_pher_factor = global_pher_factor
         self.greed_factor = greed_factor
@@ -52,26 +51,14 @@ class AntColonyOptSolver:
             for _ in range(cells_count):
                 for id, ant in enumerate(ants):
                     if ant.tile_is_valid():
-                        # print(ant.tile)
-                        # if ant.tile[0] == 7 and ant.tile[1] == 3:
-                        #     flag = True
-                        # else:
-                        #     flag = False
                         number = ant.choose_value()
-                        # if flag:
-                        # print(number)
                         ant.propagate_constraints(number)
-                        # flag = False
-                    # else:
-                    # print("dupqa")
-                    # print(ant.tile)
                     ant.move_next()
 
             # Finding best ant
             best_ant_fixed_count = 0
             for ant in ants:
                 fixed_count = ant.sudoku.fixed_count
-                failed_count = ant.sudoku.failed_count
 
                 # Check if is solved
                 if fixed_count == cells_count:
