@@ -1,14 +1,11 @@
 import numpy as np
 from copy import deepcopy, copy
-import random
 import sys
 
 sys.path.append("src/")
 from solvers.aco.ant import Ant
 from problem.sudoku_manager import Sudoku
-from constants import SIZE, SEED
-
-rand_object = random.Random(SEED)
+from constants import SIZE
 
 
 class AntColonyOptSolver:
@@ -18,11 +15,16 @@ class AntColonyOptSolver:
         local_pher_factor=0.15,
         global_pher_factor=0.8,
         evaporation=0.005,
+        seed=None,
     ):
         self.local_pher_factor = local_pher_factor
         self.global_pher_factor = global_pher_factor
         self.greed_factor = greed_factor
         self.evaporation = evaporation
+        if seed is None:
+            self.rand_object = np.random.RandomState()
+        else:
+            self.rand_object = np.random.RandomState(seed)
 
     def solve(self, sudoku: Sudoku, ants_count):
         is_solved = False
@@ -38,7 +40,7 @@ class AntColonyOptSolver:
             temp_all_tiles = copy(all_tiles)
             best_pheromone_to_add = 0
             for ant in range(ants_count):
-                tile = rand_object.choice(temp_all_tiles)
+                tile = self.rand_object.choice(temp_all_tiles)
                 temp_all_tiles.remove(tile)
                 ants.append(
                     Ant(

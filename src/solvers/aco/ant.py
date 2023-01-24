@@ -1,12 +1,9 @@
-import random
 import sys
 import numpy as np
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
-from constants import SIZE, SEED
-
-rand_object = random.Random(SEED)
+from constants import SIZE
 
 
 class Ant:
@@ -18,6 +15,7 @@ class Ant:
         local_pher_update=0.0,
         greed=1.0,
         tile=(0, 0),
+        seed=None,
     ):
         self.sudoku = sudoku
         self.pheromone_mat = pheromone_mat
@@ -25,6 +23,10 @@ class Ant:
         self.local_pher_update = local_pher_update
         self.greed = greed
         self.tile = tile
+        if seed is None:
+            self.rand_object = np.random.RandomState()
+        else:
+            self.rand_object = np.random.RandomState(seed)
 
     def move_next(self):
         new_row = self.tile[0]
@@ -45,7 +47,7 @@ class Ant:
         available_values = np.array(list(self.sudoku.state[self.tile]))
 
         # Greedy selection
-        if rand_object.random() > self.greed:
+        if self.rand_object.random() > self.greed:
             for value in available_values:
                 if pher[value - 1] > best_pheromone:
                     best_value = value
@@ -56,7 +58,7 @@ class Ant:
         else:
             weights = pher[available_values - 1]
 
-            selected_value = rand_object.choices(
+            selected_value = self.rand_object.choices(
                 available_values, weights=tuple(weights)
             )[0]
 

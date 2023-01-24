@@ -1,14 +1,10 @@
 import numpy as np
 from copy import copy
-import random
 import sys
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
-from constants import SIZE, BLOCK_SIZE, SEED
-
-rand_object = random.Random(SEED)
-rand_np_object = np.random.RandomState(SEED)
+from constants import SIZE, BLOCK_SIZE
 
 
 class GeneticAlgorithmSolver:
@@ -21,6 +17,7 @@ class GeneticAlgorithmSolver:
         max_epoch=600,
         reset_condition_val=75,
         succession_rate=1.0,
+        seed=None,
     ):
         self.max_epoch = max_epoch
         self.pc = pc
@@ -28,6 +25,10 @@ class GeneticAlgorithmSolver:
         self.pop_size = pop_size
         self.reset_condition_val = reset_condition_val
         self.succession_rate = succession_rate
+        if seed is None:
+            self.rand_object = np.random.RandomState()
+        else:
+            self.rand_object = np.random.RandomState(seed)
 
     def generate_chrom(self, is_candidate_mode=False):
         """
@@ -39,12 +40,12 @@ class GeneticAlgorithmSolver:
         chrom = copy(self.sudoku.board)
         if is_candidate_mode:
             for tile in self.sudoku_state:
-                chrom[tile] = rand_object.choice(list(self.sudoku_state[tile]))
+                chrom[tile] = self.rand_object.choice(list(self.sudoku_state[tile]))
             return chrom
 
         for row_id in range(chrom.shape[0]):
             left_in_row = copy(self.sudoku.nums_left[row_id])
-            rand_object.shuffle(left_in_row)
+            self.rand_object.shuffle(left_in_row)
             for i in range(len(chrom[row_id])):
                 if chrom[row_id, i] == 0:
                     chrom[row_id, i] = left_in_row.pop()
@@ -111,7 +112,7 @@ class GeneticAlgorithmSolver:
         probability = scores / np.amax(scores)
         probability = probability / np.sum(probability)
         ids = np.array([i for i in range(self.pop_size)])
-        selected_ids = rand_np_object.choice(ids, self.pop_size, p=probability)
+        selected_ids = self.rand_object.choice(ids, self.pop_size, p=probability)
         P_selected = np.array([P[ids[i]] for i in selected_ids])
         if self.succession_rate < 1:
             random_rate = 1 - self.succession_rate
@@ -122,19 +123,19 @@ class GeneticAlgorithmSolver:
     def mutate(self, chrom, is_candidate_mode):
         if is_candidate_mode:
             for tile in self.sudoku_state:
-                if rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
-                    chrom[tile] = rand_object.choice(list(self.sudoku_state[tile]))
+                if self.rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
+                    chrom[tile] = self.rand_object.choice(list(self.sudoku_state[tile]))
             return chrom
 
         row_iterator = 0
         for row in chrom:
-            if rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
+            if self.rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
                 available_tiles_row = self.sudoku.free_tiles[row_iterator]
                 if len(available_tiles_row) >= 2:
-                    tile_a_id = rand_object.choice(available_tiles_row)
-                    tile_b_id = rand_object.choice(available_tiles_row)
+                    tile_a_id = self.rand_object.choice(available_tiles_row)
+                    tile_b_id = self.rand_object.choice(available_tiles_row)
                     while tile_a_id == tile_b_id:
-                        tile_b_id = rand_object.choice(available_tiles_row)
+                        tile_b_id = self.rand_object.choice(available_tiles_row)
                     temp_number = row[tile_a_id]
                     row[tile_a_id] = row[tile_b_id]
                     row[tile_b_id] = temp_number
@@ -142,11 +143,11 @@ class GeneticAlgorithmSolver:
         return chrom
 
     def cross(self, chrom_a, chrom_b):
-        if rand_object.uniform(0, 1) < self.pc:  # if pair is to cross
-            slice_p_1 = rand_np_object.randint(0, chrom_a.shape[0])
-            slice_p_2 = rand_np_object.randint(0, chrom_a.shape[0])
+        if self.rand_object.uniform(0, 1) < self.pc:  # if pair is to cross
+            slice_p_1 = self.rand_object.randint(0, chrom_a.shape[0])
+            slice_p_2 = self.rand_object.randint(0, chrom_a.shape[0])
             while slice_p_1 == slice_p_2:
-                slice_p_2 = rand_np_object.randint(1, chrom_a.shape[0])
+                slice_p_2 = self.rand_object.randint(1, chrom_a.shape[0])
             if slice_p_2 < slice_p_1:
                 slice_p_temp = slice_p_1
                 slice_p_1 = slice_p_2
@@ -165,8 +166,8 @@ class GeneticAlgorithmSolver:
         pairs = []
         ids = [i for i in range(self.pop_size)]
         while ids:
-            rand1 = ids.pop(rand_np_object.randint(0, len(ids)))
-            rand2 = ids.pop(rand_np_object.randint(0, len(ids)))
+            rand1 = ids.pop(self.rand_object.randint(0, len(ids)))
+            rand2 = ids.pop(self.rand_object.randint(0, len(ids)))
             pair = rand1, rand2
             pairs.append(pair)
 
