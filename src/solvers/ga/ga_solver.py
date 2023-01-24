@@ -66,15 +66,15 @@ class GeneticAlgorithmSolver:
 
         for row in chrom:
             unique_count_row = len(np.unique(row))
-
-            reward = (unique_count_row / len(row)) ** (1 / 2)
+            unique_count += unique_count_row
+            reward = (unique_count_row / len(row)) 
             chrom_reward += row_factor * reward
             max_reward += row_factor
 
         for col in chrom.T:
             unique_count_col = len(np.unique(col))
-
-            reward = (unique_count_col / len(col)) ** (1 / 2)
+            unique_count += unique_count_col
+            reward = (unique_count_col / len(col)) 
             chrom_reward += col_factor * reward
             max_reward += col_factor
 
@@ -83,14 +83,14 @@ class GeneticAlgorithmSolver:
                 block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
 
                 unique_count_block = len(np.unique(block))
-
-                reward = (unique_count_block / 9) ** (1 / 2)
+                unique_count += unique_count_block
+                reward = (unique_count_block / 9) 
                 chrom_reward += block_factor * reward
                 max_reward += block_factor
 
         score_rate = chrom_reward / max_reward
-
-        return score_rate
+        # print(unique_count)
+        return  unique_count
 
     def get_parameters(self):
         params = {
@@ -189,10 +189,12 @@ class GeneticAlgorithmSolver:
         and best score per iteration (for plotting)
         """
         self.sudoku = sudoku
+        sudoku_size = sudoku.board.shape[0] ** 2
         self.sudoku_state = self.sudoku.get_full_state()
 
         def get_scores(P):
             scores = np.array([self.evaluate_chrom(x) for x in P])
+            # scores = 81 - scores
             return scores
 
         epoch = 0
@@ -220,14 +222,18 @@ class GeneticAlgorithmSolver:
             if best_score_local > best_score_global:
                 best_chrom_global = best_chrom_local
                 best_score_global = best_score_local
-                if best_score_global == 1.0:
+                if best_score_global == 243:
                     print(f"Problem solved. Solution:\n{best_chrom_global}")
                     break
-                print(f"Improvement! Score: {round(100*best_score_global, 2)}%")
+                # print(f"Improvement! Score: {round(100*best_score_global, 2)}%")
+                
+                print(f"Improvement! Score: {best_score_global}/243")
                 reset_condition = 0
 
             print(
-                f"Epoch: {epoch} best_global: {round(100*best_score_global, 2)}%, best_local: {round(100*best_score_local, 2)}%"
+                f"Epoch: {epoch} best_global: {best_score_global}/243, best_local: {best_score_local}/243"
+
+                # f"Epoch: {epoch} best_global: {round(100*best_score_global, 2)}%, best_local: {round(100*best_score_local, 2)}%"
             )
 
             best_score_per_epoch.append(best_score_local)
@@ -249,6 +255,50 @@ class GeneticAlgorithmSolver:
             np.array(best_score_per_epoch),
             reset_history,
         )
+
+    def evaluate_chrom2(self, chrom):
+        collisions = 0
+        for tile, _ in np.ndenumerate(chrom):
+            row_collision = self.check_row(tile, chrom)
+            col_collision = self.check_col(tile, chrom)
+            block_collision = self.check_block(tile, chrom)
+            if row_collision or col_collision or block_collision:
+                collisions += 1
+        return collisions
+
+    def check_row(self, tile, board):
+        occupance = 0
+        checked_number = board[tile]
+        for number in board[tile[0], :]:
+            if number == checked_number:
+                occupance += 1
+        # print(f'row: {occupance}')
+        return occupance != 1
+        
+    def check_col(self, tile, board):
+        occupance = 0
+        checked_number = board[tile]
+        for number in board[:, tile[1]]:
+            if number == checked_number:
+                occupance += 1
+        # print(f'column: {occupance}')
+        return occupance != 1
+        
+    def check_block(self, tile, board):
+        occupance = 0
+        checked_number = board[tile]
+
+        block_corner = ((tile[0] // 3) * 3, (tile[1] // 3) * 3)
+        block = board[block_corner[0]:block_corner[0] + 3, block_corner[1]:block_corner[1] + 3]
+        for _, number in np.ndenumerate(block):
+            if number == checked_number:
+                occupance += 1
+        # print(f'block: {occupance}')
+        
+        return occupance != 1
+        
+
+
 
     def evaluate_test(self, chrom):
         """
