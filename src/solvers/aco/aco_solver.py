@@ -11,12 +11,14 @@ from constants import SIZE
 class AntColonyOptSolver:
     def __init__(
         self,
+        max_epoch=500,
         greed_factor=0.9,
         local_pher_factor=0.15,
         global_pher_factor=0.8,
         evaporation=0.005,
         seed=None,
     ):
+        self.max_epoch = max_epoch
         self.local_pher_factor = local_pher_factor
         self.global_pher_factor = global_pher_factor
         self.greed_factor = greed_factor
@@ -32,10 +34,13 @@ class AntColonyOptSolver:
         init_val = 1 / cells_count
         self.pheromone_matrix = np.ones([SIZE, SIZE, SIZE]) * init_val
 
+        ants_moves = 0
+        best_score_per_epoch = []
+
         epoch = 1
         solution = None
         all_tiles = [index for index, _ in np.ndenumerate(sudoku.board)]
-        while not is_solved:
+        while epoch < self.max_epoch and not is_solved:
             ants = []
             temp_all_tiles = copy(all_tiles)
             best_pheromone_to_add = 0
@@ -74,11 +79,6 @@ class AntColonyOptSolver:
                 if fixed_count == cells_count:
                     solution = ant.sudoku.board
                     is_solved = True
-                    print(
-                        f"EPOCH {epoch}: most fixed = {best_ant.sudoku.fixed_count}, failed count: {best_ant.sudoku.failed_count}, sol:\n {solution}"
-                    )
-                    print("SUDOKU SOLVED")
-                    return solution
 
             pheromone_to_add = cells_count / (cells_count - best_ant_fixed_count)
             # print(f"pheromone_to_add: {pheromone_to_add}")
@@ -92,9 +92,19 @@ class AntColonyOptSolver:
             # Evapropation
             best_pheromone_to_add *= 1 - self.evaporation
             print(
-                f"EPOCH {epoch}: most fixed = {best_ant.sudoku.fixed_count}, failed count: {best_ant.sudoku.failed_count}, sol:\n {solution}"
+                f"EPOCH {epoch}: most fixed = {best_ant.sudoku.fixed_count}, failed count: {best_ant.sudoku.failed_count}"
             )
+            ants_moves += (ant.move_next.called for ant in ants)
+            best_score_per_epoch.append(best_ant.sudoku.fixed_count)
             epoch += 1
+
+        print(f"Problem solved. Solution:\n{solution}")
+        return (
+            solution,
+            best_ant.sudoku.fixed_count,
+            best_score_per_epoch,
+            ants_moves,
+        )
 
     def global_pher_mat_update(self, solution, best_pheromone):
         for row in range(SIZE):

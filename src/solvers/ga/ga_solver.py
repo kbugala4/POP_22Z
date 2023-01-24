@@ -205,7 +205,7 @@ class GeneticAlgorithmSolver:
 
         best_score_per_epoch = []
 
-        while epoch < self.max_epoch or is_solved:
+        while epoch < self.max_epoch and not is_solved:
             P_epoch_selected = self.selection(
                 P_epoch, P_epoch_scores, is_candidate_mode
             )
@@ -221,7 +221,8 @@ class GeneticAlgorithmSolver:
                 best_chrom_global = best_chrom_local
                 best_score_global = best_score_local
                 if best_score_global == 3 * SIZE**2:
-                    print(f"Problem solved. Solution:\n{best_chrom_global}")
+                    reset_history.append((best_chrom_global, best_score_global))
+                    is_solved = True
                 else:
                     print(f"Improvement! Score: {best_score_global}/243")
                 reset_condition = 0
@@ -241,11 +242,11 @@ class GeneticAlgorithmSolver:
                 P_epoch = self.generate_population(is_candidate_mode)
                 P_epoch_scores = get_scores(P_epoch)
                 reset_history.append((best_chrom_global, best_score_global))
-                best_score_global = 0
 
+        print(f"Problem solved. Solution:\n{best_chrom_global}")
         return (
             best_chrom_global,
             best_score_global,
-            np.array(best_score_per_epoch),
+            best_score_per_epoch,
             reset_history,
         )

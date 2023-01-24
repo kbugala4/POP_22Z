@@ -6,6 +6,16 @@ from problem.sudoku_manager import Sudoku
 from constants import SIZE
 
 
+def count(fn):
+    def wrapper(*args, **kwargs):
+        wrapper.called += 1
+        return fn(*args, **kwargs)
+
+    wrapper.called = 0
+    wrapper.__name__ = fn.__name__
+    return wrapper
+
+
 class Ant:
     def __init__(
         self,
@@ -28,6 +38,7 @@ class Ant:
         else:
             self.rand_object = np.random.RandomState(seed)
 
+    @count
     def move_next(self):
         new_row = self.tile[0]
         new_col = self.tile[1] + 1
