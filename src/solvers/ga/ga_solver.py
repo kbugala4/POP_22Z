@@ -5,6 +5,10 @@ import sys
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
+from constants import SIZE, BLOCK_SIZE, SEED
+
+rand_object = random.Random(SEED)
+rand_np_object = np.random.RandomState(SEED)
 
 
 class GeneticAlgorithmSolver:
@@ -35,12 +39,12 @@ class GeneticAlgorithmSolver:
         chrom = copy(self.sudoku.board)
         if is_candidate_mode:
             for tile in self.sudoku_state:
-                chrom[tile] = np.random.choice(list(self.sudoku_state[tile]))
+                chrom[tile] = rand_object.choice(list(self.sudoku_state[tile]))
             return chrom
 
         for row_id in range(chrom.shape[0]):
             left_in_row = copy(self.sudoku.nums_left[row_id])
-            random.shuffle(left_in_row)
+            rand_object.shuffle(left_in_row)
             for i in range(len(chrom[row_id])):
                 if chrom[row_id, i] == 0:
                     chrom[row_id, i] = left_in_row.pop()
@@ -57,40 +61,26 @@ class GeneticAlgorithmSolver:
         A method to evaluate given chromosome.
         """
         unique_count = 0
-        chrom_reward = 0
-        max_reward = 0
-
-        row_factor = 1
-        col_factor = 1
-        block_factor = 1
 
         for row in chrom:
             unique_count_row = len(np.unique(row))
             unique_count += unique_count_row
-            reward = (unique_count_row / len(row)) 
-            chrom_reward += row_factor * reward
-            max_reward += row_factor
 
         for col in chrom.T:
             unique_count_col = len(np.unique(col))
             unique_count += unique_count_col
-            reward = (unique_count_col / len(col)) 
-            chrom_reward += col_factor * reward
-            max_reward += col_factor
 
         for i in range(3):
             for j in range(3):
-                block = chrom[i * 3 : i * 3 + 3, j * 3 : j * 3 + 3]
+                block = chrom[
+                    i * BLOCK_SIZE : i * BLOCK_SIZE + BLOCK_SIZE,
+                    j * BLOCK_SIZE : j * BLOCK_SIZE + BLOCK_SIZE,
+                ]
 
                 unique_count_block = len(np.unique(block))
                 unique_count += unique_count_block
-                reward = (unique_count_block / 9) 
-                chrom_reward += block_factor * reward
-                max_reward += block_factor
 
-        score_rate = chrom_reward / max_reward
-        # print(unique_count)
-        return  unique_count
+        return unique_count
 
     def get_parameters(self):
         params = {
@@ -121,7 +111,7 @@ class GeneticAlgorithmSolver:
         probability = scores / np.amax(scores)
         probability = probability / np.sum(probability)
         ids = np.array([i for i in range(self.pop_size)])
-        selected_ids = np.random.choice(ids, self.pop_size, p=probability)
+        selected_ids = rand_np_object.choice(ids, self.pop_size, p=probability)
         P_selected = np.array([P[ids[i]] for i in selected_ids])
         if self.succession_rate < 1:
             random_rate = 1 - self.succession_rate
@@ -132,19 +122,19 @@ class GeneticAlgorithmSolver:
     def mutate(self, chrom, is_candidate_mode):
         if is_candidate_mode:
             for tile in self.sudoku_state:
-                if np.random.uniform(0, 1) < self.pm:  # if row is to mutate
-                    chrom[tile] = np.random.choice(list(self.sudoku_state[tile]))
+                if rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
+                    chrom[tile] = rand_object.choice(list(self.sudoku_state[tile]))
             return chrom
 
         row_iterator = 0
         for row in chrom:
-            if np.random.uniform(0, 1) < self.pm:  # if row is to mutate
+            if rand_object.uniform(0, 1) < self.pm:  # if row is to mutate
                 available_tiles_row = self.sudoku.free_tiles[row_iterator]
                 if len(available_tiles_row) >= 2:
-                    tile_a_id = random.choice(available_tiles_row)
-                    tile_b_id = random.choice(available_tiles_row)
+                    tile_a_id = rand_object.choice(available_tiles_row)
+                    tile_b_id = rand_object.choice(available_tiles_row)
                     while tile_a_id == tile_b_id:
-                        tile_b_id = random.choice(available_tiles_row)
+                        tile_b_id = rand_object.choice(available_tiles_row)
                     temp_number = row[tile_a_id]
                     row[tile_a_id] = row[tile_b_id]
                     row[tile_b_id] = temp_number
@@ -175,8 +165,8 @@ class GeneticAlgorithmSolver:
         pairs = []
         ids = [i for i in range(self.pop_size)]
         while ids:
-            rand1 = ids.pop(np.random.randint(0, len(ids)))
-            rand2 = ids.pop(np.random.randint(0, len(ids)))
+            rand1 = ids.pop(rand_object.randint(0, len(ids) - 1))
+            rand2 = ids.pop(rand_object.randint(0, len(ids) - 1))
             pair = rand1, rand2
             pairs.append(pair)
 
@@ -207,13 +197,14 @@ class GeneticAlgorithmSolver:
         best_score_global = 0
         reset_condition = 0
         reset_history = []
+        is_solved = False
 
         P_epoch = self.generate_population(is_candidate_mode)
         P_epoch_scores = get_scores(P_epoch)
 
         best_score_per_epoch = []
 
-        while epoch < self.max_epoch:
+        while epoch < self.max_epoch or is_solved:
             P_epoch_selected = self.selection(
                 P_epoch, P_epoch_scores, is_candidate_mode
             )
@@ -228,10 +219,10 @@ class GeneticAlgorithmSolver:
             if best_score_local > best_score_global:
                 best_chrom_global = best_chrom_local
                 best_score_global = best_score_local
-                if best_score_global == 243:
+                if best_score_global == 3 * SIZE**2:
                     print(f"Problem solved. Solution:\n{best_chrom_global}")
-                    break
-                print(f"Improvement! Score: {best_score_global}/243")
+                else:
+                    print(f"Improvement! Score: {best_score_global}/243")
                 reset_condition = 0
 
             print(

@@ -5,7 +5,7 @@ import sys
 from copy import copy
 
 sys.path.append("src/")
-from constants import *
+from constants import SUDOKU_LEVELS, SIZE, BLOCK_SIZE, NUMBERS
 
 ABS_PATH = os.path.dirname(__file__)
 
@@ -138,26 +138,3 @@ class Sudoku(object):
             free_ids[i] = np.where(self.board[i] == 0)[0].tolist()
             nums_left[i] = self.__get_left_in_row(i)
         return free_ids, nums_left
-
-
-# if __name__ == "__main__":
-
-#     sud1 = Sudoku("easy", 4)
-
-#     print(sud1.board)
-
-#     print(sud1.state)
-
-#     sud1.update_state((0, 0), 3)
-
-#     print("AFTER UPDATE:")
-
-#     print(sud1.state)
-
-#     print(sud1.board)
-
-#     arr = np.zeros((3, 4, 5))
-#     print(arr)
-#     arr[0, 1, 2] = 45
-#     arr[0][(1, 2)] = 45
-#     print(arr)
