@@ -108,17 +108,11 @@ class Sudoku(object):
                     )
                     and tile_num in self.state[tile]
                 ):
-                    # print(f"Before remove: {self.state[tile]}")
                     self.state[tile].remove(tile_num)
-                    # print(f"After remove: {self.state[tile]}")
-                    # print(f"Removing {tile_num} from {tile}")
                     if not self.state[tile]:
-                        # print(f"Tile {tile} set as failed")
                         self.failed_count += 1
                         self.fixed_count -= 1
                     elif len(self.state[tile]) == 1:
-                        # print(f"Tile {tile} set as fixed")
-                        # self.fixed_count += 1
                         new_fixed_tiles.append((tile, list(self.state[tile])[0]))
             for new_fixed in new_fixed_tiles:
                 self.update_state(new_fixed[0], new_fixed[1])
@@ -146,24 +140,24 @@ class Sudoku(object):
         return free_ids, nums_left
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    sud1 = Sudoku("easy", 4)
+#     sud1 = Sudoku("easy", 4)
 
-    print(sud1.board)
+#     print(sud1.board)
 
-    print(sud1.state)
+#     print(sud1.state)
 
-    sud1.update_state((0, 0), 3)
+#     sud1.update_state((0, 0), 3)
 
-    print("AFTER UPDATE:")
+#     print("AFTER UPDATE:")
 
-    print(sud1.state)
+#     print(sud1.state)
 
-    print(sud1.board)
+#     print(sud1.board)
 
-    arr = np.zeros((3, 4, 5))
-    print(arr)
-    arr[0, 1, 2] = 45
-    arr[0][(1, 2)] = 45
-    print(arr)
+#     arr = np.zeros((3, 4, 5))
+#     print(arr)
+#     arr[0, 1, 2] = 45
+#     arr[0][(1, 2)] = 45
+#     print(arr)
