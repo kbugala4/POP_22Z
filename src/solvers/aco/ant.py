@@ -4,7 +4,9 @@ import numpy as np
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
-from constants import SIZE
+from constants import SIZE, SEED
+
+rand_object = random.Random(SEED)
 
 
 class Ant:
@@ -43,7 +45,7 @@ class Ant:
         available_values = np.array(list(self.sudoku.state[self.tile]))
 
         # Greedy selection
-        if random.random() > self.greed:
+        if rand_object.random() > self.greed:
             for value in available_values:
                 if pher[value - 1] > best_pheromone:
                     best_value = value
@@ -54,7 +56,9 @@ class Ant:
         else:
             weights = pher[available_values - 1]
 
-            selected_value = random.choices(available_values, weights=tuple(weights))[0]
+            selected_value = rand_object.choices(
+                available_values, weights=tuple(weights)
+            )[0]
 
         return selected_value
 

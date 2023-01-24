@@ -6,7 +6,9 @@ import sys
 sys.path.append("src/")
 from solvers.aco.ant import Ant
 from problem.sudoku_manager import Sudoku
-from constants import SIZE
+from constants import SIZE, SEED
+
+rand_object = random.Random(SEED)
 
 
 class AntColonyOptSolver:
@@ -36,11 +38,8 @@ class AntColonyOptSolver:
             temp_all_tiles = copy(all_tiles)
             best_pheromone_to_add = 0
             for ant in range(ants_count):
-                # column = ant % SIZE
-                # row = int(ant / SIZE)
-                tile = random.choice(temp_all_tiles)
+                tile = rand_object.choice(temp_all_tiles)
                 temp_all_tiles.remove(tile)
-                # tile = (row, column)
                 ants.append(
                     Ant(
                         deepcopy(sudoku),
