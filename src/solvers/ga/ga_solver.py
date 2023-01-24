@@ -153,10 +153,18 @@ class GeneticAlgorithmSolver:
 
     def cross(self, chrom_a, chrom_b):
         if np.random.uniform(0, 1) < self.pc:  # if pair is to cross
-            slice_point = np.random.randint(1, chrom_a.shape[0])
-            temp_a = copy(chrom_a[slice_point:])
-            chrom_a[slice_point:] = chrom_b[slice_point:]
-            chrom_b[slice_point:] = temp_a
+            slice_p_1 = np.random.randint(0, chrom_a.shape[0])
+            slice_p_2 = np.random.randint(0, chrom_a.shape[0])
+            while slice_p_1 == slice_p_2:
+                slice_p_2 = np.random.randint(1, chrom_a.shape[0])
+            if slice_p_2 < slice_p_1:
+                slice_p_temp = slice_p_1
+                slice_p_1 = slice_p_2
+                slice_p_2 = slice_p_temp
+
+            temp_a = copy(chrom_a[slice_p_1:slice_p_2])
+            chrom_a[slice_p_1:slice_p_2] = chrom_b[slice_p_1:slice_p_2]
+            chrom_b[slice_p_1:slice_p_2] = temp_a
         return chrom_a, chrom_b
 
     def crossover_mutation(self, P, is_candidate_mode):
