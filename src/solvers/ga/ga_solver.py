@@ -28,7 +28,7 @@ class GeneticAlgorithmSolver:
     def generate_chrom(self, is_candidate_mode=False):
         """
         A method to generate chromosome as initial sudoku board.
-        Generated chrmosome repects constraints for each row
+        Generated chromosome repects constraints for each row
         (row contains all unique numbers 1, 2, 3.. 9).
         Sudoku constraints for columns and block are not applied
         """
