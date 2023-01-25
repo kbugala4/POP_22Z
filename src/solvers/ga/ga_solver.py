@@ -38,8 +38,6 @@ class GeneticAlgorithmSolver:
         Sudoku constraints for columns and block are not applied
         """
         chrom = copy(self.sudoku.board)
-        print(f"empty chrom: {chrom}")
-        print(self.sudoku_state)
         if is_candidate_mode:
             for tile in self.sudoku_state:
                 chrom[tile] = self.rand_object.choice(list(self.sudoku_state[tile]))
@@ -111,9 +109,7 @@ class GeneticAlgorithmSolver:
         Selecting better scores with higher probability
         """
         scores = scores - np.amin(scores)
-        # print(f"score: {scores}")
         probability = scores / np.amax(scores)
-        # print(f"probability: {probability}")
         probability = probability / np.sum(probability)
         ids = np.array([i for i in range(self.pop_size)])
         selected_ids = self.rand_object.choice(ids, self.pop_size, p=probability)

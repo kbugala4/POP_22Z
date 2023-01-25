@@ -1,0 +1,15 @@
+{
+    "seed": 199,
+    "test_id": 15,
+    "start_id": 40,
+    "num_of_runs": 3,
+    "num_of_sudokus": 3,
+    "sudoku_level": "hard",
+    "pop_size": 500,
+    "pc": 0.7,
+    "pm": 0.1,
+    "max_epoch": 1500,
+    "reset_cond": 150,
+    "succ_rate": 1,
+    "if_candidates": false
+}

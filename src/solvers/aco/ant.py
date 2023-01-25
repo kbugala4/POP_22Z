@@ -1,31 +1,22 @@
 import sys
 import numpy as np
+import random
 
 sys.path.append("src/")
 from problem.sudoku_manager import Sudoku
 from constants import SIZE
 
 
-def count(fn):
-    def wrapper(*args, **kwargs):
-        wrapper.called += 1
-        return fn(*args, **kwargs)
-
-    wrapper.called = 0
-    wrapper.__name__ = fn.__name__
-    return wrapper
-
-
 class Ant:
     def __init__(
         self,
+        rand_object,
         sudoku: Sudoku,
         pheromone_mat=None,
         initial_pher_val=0.0,
         local_pher_update=0.0,
         greed=1.0,
         tile=(0, 0),
-        seed=None,
     ):
         self.sudoku = sudoku
         self.pheromone_mat = pheromone_mat
@@ -33,12 +24,8 @@ class Ant:
         self.local_pher_update = local_pher_update
         self.greed = greed
         self.tile = tile
-        if seed is None:
-            self.rand_object = np.random.RandomState()
-        else:
-            self.rand_object = np.random.RandomState(seed)
+        self.rand_object = rand_object
 
-    @count
     def move_next(self):
         new_row = self.tile[0]
         new_col = self.tile[1] + 1

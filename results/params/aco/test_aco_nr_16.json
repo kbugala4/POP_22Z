@@ -1,0 +1,14 @@
+{
+    "seed": 143,
+    "test_id": 16,
+    "start_id": 55,
+    "num_of_runs": 3,
+    "num_of_sudokus": 3,
+    "sudoku_level": "medium",
+    "max_epoch": 500,
+    "greed_factor": 0.9,
+    "local_pher_factor": 0.15,
+    "global_pher_factor": 0.78,
+    "evaporation": 0.005,
+    "ants_count": 81
+}
