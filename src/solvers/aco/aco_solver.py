@@ -102,7 +102,7 @@ class AntColonyOptSolver:
         return (
             solution,
             best_ant.sudoku.fixed_count,
-            best_score_per_epoch,
+            np.array(best_score_per_epoch),
             ants_moves,
         )
 
