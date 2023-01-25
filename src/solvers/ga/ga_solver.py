@@ -231,7 +231,7 @@ class GeneticAlgorithmSolver:
                 f"Epoch: {epoch} best_global: {best_score_global}/243, best_local: {best_score_local}/243"
             )
 
-            best_score_per_epoch.append(best_score_local)
+            best_score_per_epoch.append(best_score_global)
             epoch += 1
             reset_condition += 1
 
@@ -243,10 +243,14 @@ class GeneticAlgorithmSolver:
                 P_epoch_scores = get_scores(P_epoch)
                 reset_history.append((best_chrom_global, best_score_global))
 
-        print(f"Problem solved. Solution:\n{best_chrom_global}")
+        if is_solved:
+            print(f"Problem solved. Solution:\n{best_chrom_global}\n")
+        else:
+            print(f"Unsolved. Best chromosome:\n{best_chrom_global}\n")
+
         return (
             best_chrom_global,
             best_score_global,
-            best_score_per_epoch,
+            np.array(best_score_per_epoch),
             reset_history,
         )
