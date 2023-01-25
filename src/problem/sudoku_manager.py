@@ -39,6 +39,7 @@ class Sudoku(object):
         self.fixed_count = len(self.__get_occupied_tiles())
         self.failed_count = 0
         self.state = self.get_full_state()
+        self.__init_state_update()
 
     def __get_free_tiles(self):
         free_tiles_arrs = np.where(self.board == 0)
@@ -77,19 +78,21 @@ class Sudoku(object):
 
     def get_full_state(self):
         state = {}
-        # for tile, _ in np.ndenumerate(self.board):
         for tile in self.__get_free_tiles():
             numbers = copy(NUMBERS)
             numbers = self.__check_row(numbers, tile)
             numbers = self.__check_column(numbers, tile)
             numbers = self.__check_block(numbers, tile)
             state[tile] = numbers
+        return state
+
+    def __init_state_update(self):
+        for tile, numbers in self.state.items():
             if len(numbers) == 1:
                 self.board[tile] = list(numbers)[0]
                 self.fixed_count += 1
             elif len(numbers) == 0:
                 self.failed_count += 1
-        return state
 
     def update_state(self, upd_tile, tile_num):
         if len(self.state[upd_tile]) > 0:

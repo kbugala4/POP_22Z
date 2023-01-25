@@ -38,6 +38,8 @@ class GeneticAlgorithmSolver:
         Sudoku constraints for columns and block are not applied
         """
         chrom = copy(self.sudoku.board)
+        print(f"empty chrom: {chrom}")
+        print(self.sudoku_state)
         if is_candidate_mode:
             for tile in self.sudoku_state:
                 chrom[tile] = self.rand_object.choice(list(self.sudoku_state[tile]))
@@ -71,8 +73,8 @@ class GeneticAlgorithmSolver:
             unique_count_col = len(np.unique(col))
             unique_count += unique_count_col
 
-        for i in range(3):
-            for j in range(3):
+        for i in range(BLOCK_SIZE):
+            for j in range(BLOCK_SIZE):
                 block = chrom[
                     i * BLOCK_SIZE : i * BLOCK_SIZE + BLOCK_SIZE,
                     j * BLOCK_SIZE : j * BLOCK_SIZE + BLOCK_SIZE,
@@ -109,7 +111,9 @@ class GeneticAlgorithmSolver:
         Selecting better scores with higher probability
         """
         scores = scores - np.amin(scores)
+        # print(f"score: {scores}")
         probability = scores / np.amax(scores)
+        # print(f"probability: {probability}")
         probability = probability / np.sum(probability)
         ids = np.array([i for i in range(self.pop_size)])
         selected_ids = self.rand_object.choice(ids, self.pop_size, p=probability)
@@ -187,8 +191,8 @@ class GeneticAlgorithmSolver:
         returnes globally best vector of decision, score
         and best score per iteration (for plotting)
         """
-        self.sudoku = sudoku
-        self.sudoku_state = self.sudoku.get_full_state()
+        self.sudoku = copy(sudoku)
+        self.sudoku_state = self.sudoku.state
 
         def get_scores(P):
             scores = np.array([self.evaluate_chrom(x) for x in P])
